@@ -6,3 +6,5 @@ Great to implement Bootstrap, jquery and other technologies into church info
 
 Bootstrap
 http://getbootstrap.com/components/
+
+Responsive Branch.
