@@ -25,7 +25,6 @@
 *
 ******************************************************************************/
 // Initialization common to all ChurchInfo scripts
-
 //
 // Basic security checks:
 //

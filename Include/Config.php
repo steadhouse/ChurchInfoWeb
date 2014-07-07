@@ -21,6 +21,7 @@ $sDATABASE = 'churchinfo';
 // This path SHOULD NOT end with slash.  This is case sensitive.
 $sRootPath = '/churchinfo';
 
+
 // Set $bLockURL=TRUE to enforce https access by specifying exactly
 // which URL's your users may use to log into ChurchInfo.
 $bLockURL = FALSE;

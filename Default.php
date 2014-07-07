@@ -9,8 +9,8 @@
  *
  *  Updated 2005-03-19 by Everette L Mills: Removed dropdown login box and
  *  added user entered login box
- *
- *  
+ * Updated 2014-06 By diferrans@gmail.com, adding Ajax events on login.
+ *  Adding Bootstrap responsive framework. on login
  *  LICENSE:
  *  (C) Free Software Foundation, Inc.
  *
@@ -45,6 +45,7 @@ require 'Include/Functions.php';
 // Initialize the variables
 $sErrorText = '';
 
+	
 // Is the user requesting to logoff or timed out?
 if (isset($_GET["Logoff"]) || isset($_GET['timeout'])) {
     if (!isset($_SESSION['sshowPledges']) || ($_SESSION['sshowPledges'] == ''))
@@ -86,6 +87,7 @@ if (isset($_GET["Logoff"]) || isset($_GET['timeout'])) {
    }
 }
 
+
 $iUserID = 0;
 // Get the UserID out of user name submitted in form results
 if (isset($_POST['User']) && $sErrorText == '') {
@@ -95,9 +97,19 @@ if (isset($_POST['User']) && $sErrorText == '') {
     $uSQL = "SELECT usr_per_id FROM user_usr WHERE usr_UserName like '$UserName'";
     $usQueryResult = RunQuery($uSQL);
     $usQueryResultSet = mysql_fetch_array($usQueryResult);
-    if ($usQueryResultSet == Null){
+	//Number of results
+	$usQueryResultRows = mysql_num_rows($usQueryResult);
+	//Based on Row results SQL
+   // if ($usQueryResultSet == Null){
+	 if ($usQueryResultRows == 0 ){
         // Set the error text
-        $sErrorText = '&nbsp;' . gettext('Invalid login or password');
+        //$sErrorText = '&nbsp;' . gettext('Invalid login or password');
+		//Ajax Json response.
+		$arr = array ('id'=>1,'mensaje'=>'Invalid login or password ');
+		echo json_encode($arr); 
+		die;
+		
+		
     }else{
         //Set user Id based on login name provided
         $iUserID = $usQueryResultSet['usr_per_id'];
@@ -108,7 +120,7 @@ if (isset($_POST['User']) && $sErrorText == '') {
     $iUserID = 0;
     $_COOKIE = array();
     $_SESSION = array();
-    session_destroy();
+   // session_destroy();
 }
 
 
@@ -148,9 +160,10 @@ if ($iUserID > 0)
     }
 
     // Block the login if a maximum login failure count has been reached
-    if ($iMaxFailedLogins > 0 && $usr_FailedLogins >= $iMaxFailedLogins) {
-
-        $sErrorText = '<br>' . gettext('Too many failed logins: your account has been locked.  Please contact an administrator.');
+    if ($iMaxFailedLogins > 0 && $usr_FailedLogins >= $iMaxFailedLogins) {  
+		$arr = array ('id'=>2, 'mensaje'=> gettext('Too many failed logins: your account has been locked.  Please contact an administrator.'));
+		echo json_encode($arr); 
+		die;
     }
 
     // Does the password match?
@@ -160,9 +173,11 @@ if ($iUserID > 0)
         $sSQL = 'UPDATE user_usr SET usr_FailedLogins = usr_FailedLogins + 1 '.
                 "WHERE usr_per_ID ='$iUserID'";
         RunQuery($sSQL);
-
         // Set the error text
-        $sErrorText = '&nbsp;' . gettext('Invalid login or password');
+		// $sErrorText Changed for Json response code 1 means INVALID LOGIN OR PASSWORD
+		$arr = array ('id'=>1,'mensaje'=>gettext('Invalid login or password'));
+		echo json_encode($arr); 
+		die;		
     } else {
 
         // Set the LastLogin and Increment the LoginCount
@@ -331,7 +346,15 @@ if ($iUserID > 0)
         }
         
         // Redirect to the Menu
-        Redirect('CheckVersion.php');
+		$arr = array ('id'=>3, 'mensaje'=> gettext('login succesfull'));
+		echo json_encode($arr); 
+		//Redirect('CheckVersion.php');
+		//Redirect('Menu.php');
+		
+		//die;
+		
+		
+      
         exit;
     }
 }
@@ -400,8 +423,9 @@ ob_start();
 ?>
 
 <div class="container">
+<?php echo $sErrorText; ?>
 	  	<?php if (isset($_GET['Proto']) && isset($_GET['Path'])) { ?>
-      <form  method="post" name="LoginForm" action="Default.php" class="form-signin" role="form">
+      <form  method="post" name="LoginForm" id="LoginForm" action="Default.php" class="form-signin" role="form">
 	    <?php if (isset($_GET['timeout'])) { ?>	
 		 <span style="color:red; font-size:120%;">Your previous session timed out.  Please login again.</span>		
 		  </tr> <?php } ?>
@@ -409,12 +433,17 @@ ob_start();
 		 <?php if (isset($sErrorText) <> '') { ?>
 		  <span style="color:red;" id="PasswordError"><?php echo $sErrorText; ?></span>
 		 <?php } ?>		 
-		 <input type="hidden" name="sURLPath"  value="<?php echo $_GET['Proto'] . "://" . $_GET['Path'] ?>">		 
+				 
 		 <?php }?>
 		 
-        <h2 class="form-signin-heading">Please Login</h2>
-        <input type="text" name="User" class="form-control" placeholder="Username" required autofocus>
-        <input type="password" name="Password" class="form-control" placeholder="Password" required>
+        <h2 class="form-signin-heading">Please Login </h2>
+        <input type="text" name="User" id="User" class="form-control" placeholder="Username" required autofocus>
+        <input type="password" name="Password" id="Password" class="form-control" placeholder="Password" required>
+		<div class="alert"  id="errornotification" role="alert" style="display:none"> </div>
+		 <input type="hidden" name="sURLPath"  id="sURLPath" value="<?php echo $_GET['Proto'] . "://" . $_GET['Path'] ?>">
+		
+		
+		
         <div class="checkbox">
           <label>
             <input type="checkbox" value="remember-me"> Remember me
@@ -423,6 +452,12 @@ ob_start();
         <button class="btn btn-lg btn-primary btn-block" type="submit"><?php echo gettext('Login'); ?></button>
       </form>
 
+	  
+	  <!--  <div id="errornotification"></div> -->
+	 
+	  
+	  
+	  
     </div> <!-- /container -->
 		<script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
         <script>window.jQuery || document.write('<script src="js/vendor/jquery-1.11.0.min.js"><\/script>')</script>
