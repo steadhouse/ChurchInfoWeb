@@ -1,9 +1,9 @@
 <?php
 /*******************************************************************************
  *
- *  filename    : eGive.php
- *  last change : 2009-08-27
- *  description : Tool for importing eGive data
+ *  filename    : AjaxFunctions.php
+ *  last change : 2013-07-07
+ *  description : Library for ajax requests of family info
  *
  ******************************************************************************/
 
